@@ -1,4 +1,5 @@
 .venv
+.DS_Store
 
 installers/mariadb-installieren.txt
 .travis.yml
