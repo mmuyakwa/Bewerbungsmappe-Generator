@@ -1,0 +1,163 @@
+\section{Automatisierte Bewerbungserstellung und
+Versand}\label{automatisierte-bewerbungserstellung-und-versand}
+
+\subsection{Zielsetzung}\label{zielsetzung}
+
+Das Ziel ist es, eine automatisierte Bewerbungserstellung und Versand zu
+implementieren. Dabei sollen Adressen und Brieftexte aus Dateien
+eingelesen, Platzhalter im Brieftext ersetzt, PDF-Dateien erzeugt und
+optional per E-Mail versendet werden.
+
+\subsection{Grundgedanke}\label{grundgedanke}
+
+Der Prozess soll die Erstellung und den Versand von Bewerbungen
+automatisieren, um Zeit zu sparen und Fehler zu vermeiden.
+
+\subsection{Durchführungsschritte}\label{durchfuxfchrungsschritte}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Einlesen der Adressen aus der Textdatei
+\item
+  Auswahl einer Adresse aus den vorhandenen Adressen
+\item
+  Einlesen des Brieftextes aus der Datei
+\item
+  Ersetzen der Platzhalter im Brieftext mit den entsprechenden
+  Informationen aus der ausgewählten Adresse
+\item
+  Erzeugen einer PDF-Datei mit dem Brieftext und den Anhängen
+\item
+  Optional: Versenden der PDF-Datei per E-Mail
+\end{enumerate}
+
+\subsection{Anforderungen}\label{anforderungen}
+
+\begin{itemize}
+\tightlist
+\item
+  Python 3
+\item
+  Bibliotheken: csv, fpdf, PyPDF2, smtplib, ssl, email.mime.text,
+  email.mime.multipart, email.mime.base, email
+\end{itemize}
+
+\subsection{Beispiel}\label{beispiel}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{import}\NormalTok{ csv}
+\ImportTok{from}\NormalTok{ fpdf }\ImportTok{import}\NormalTok{ FPDF}
+\ImportTok{from}\NormalTok{ PyPDF2 }\ImportTok{import}\NormalTok{ PdfMerger}
+\ImportTok{import}\NormalTok{ smtplib, ssl}
+\ImportTok{from}\NormalTok{ email.mime.text }\ImportTok{import}\NormalTok{ MIMEText}
+\ImportTok{from}\NormalTok{ email.mime.multipart }\ImportTok{import}\NormalTok{ MIMEMultipart}
+\ImportTok{from}\NormalTok{ email.mime.base }\ImportTok{import}\NormalTok{ MIMEBase}
+\ImportTok{from}\NormalTok{ email }\ImportTok{import}\NormalTok{ encoders}
+
+\CommentTok{\# Einlesen der Adressen}
+\ControlFlowTok{with} \BuiltInTok{open}\NormalTok{(}\StringTok{"data/Adressen.csv"}\NormalTok{, }\StringTok{"r"}\NormalTok{, encoding}\OperatorTok{=}\StringTok{"utf{-}8"}\NormalTok{) }\ImportTok{as} \BuiltInTok{file}\NormalTok{:}
+\NormalTok{    reader }\OperatorTok{=}\NormalTok{ csv.reader(}\BuiltInTok{file}\NormalTok{, delimiter}\OperatorTok{=}\StringTok{";"}\NormalTok{)}
+\NormalTok{    adressen }\OperatorTok{=} \BuiltInTok{list}\NormalTok{(reader)}
+\NormalTok{    adressen }\OperatorTok{=}\NormalTok{ adressen[}\DecValTok{1}\NormalTok{:]}
+
+\CommentTok{\# Einlesen des Brieftextes}
+\ControlFlowTok{with} \BuiltInTok{open}\NormalTok{(}\StringTok{"data/Brieftext.txt"}\NormalTok{, }\StringTok{"r"}\NormalTok{, encoding}\OperatorTok{=}\StringTok{"utf{-}8"}\NormalTok{) }\ImportTok{as} \BuiltInTok{file}\NormalTok{:}
+\NormalTok{    Bewerbungstext }\OperatorTok{=} \BuiltInTok{file}\NormalTok{.read()}
+
+\CommentTok{\# Verarbeitung der Adressen}
+\ControlFlowTok{for}\NormalTok{ i }\KeywordTok{in}\NormalTok{ adressen:}
+\NormalTok{    Firmenname }\OperatorTok{=}\NormalTok{ i[}\DecValTok{0}\NormalTok{].strip()}
+\NormalTok{    Emailadresse }\OperatorTok{=}\NormalTok{ i[}\DecValTok{1}\NormalTok{].strip()}
+\NormalTok{    Ansprechpartner }\OperatorTok{=}\NormalTok{ i[}\DecValTok{2}\NormalTok{].strip()}
+\NormalTok{    Straße }\OperatorTok{=}\NormalTok{ i[}\DecValTok{3}\NormalTok{].strip()}
+\NormalTok{    PLZ }\OperatorTok{=}\NormalTok{ i[}\DecValTok{4}\NormalTok{].strip()}
+\NormalTok{    Ort }\OperatorTok{=}\NormalTok{ i[}\DecValTok{5}\NormalTok{].strip()}
+\NormalTok{    Anrede }\OperatorTok{=}\NormalTok{ i[}\DecValTok{6}\NormalTok{].strip()}
+\NormalTok{    Stellenbezeichnung }\OperatorTok{=}\NormalTok{ i[}\DecValTok{7}\NormalTok{].strip()}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ Bewerbungstext}
+
+    \CommentTok{\# Ersetzen der Platzhalter}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"}\SpecialCharTok{\{Firmenname\}}\StringTok{"}\NormalTok{, Firmenname)}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"}\SpecialCharTok{\{Emailadresse\}}\StringTok{"}\NormalTok{, Emailadresse)}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"}\SpecialCharTok{\{Ansprechpartner\}}\StringTok{"}\NormalTok{, Ansprechpartner)}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"\{Straße\}"}\NormalTok{, Straße)}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"}\SpecialCharTok{\{PLZ\}}\StringTok{"}\NormalTok{, PLZ)}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"}\SpecialCharTok{\{Ort\}}\StringTok{"}\NormalTok{, Ort)}
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"}\SpecialCharTok{\{Anrede\}}\StringTok{"}\NormalTok{, Anrede)    }
+\NormalTok{    brief }\OperatorTok{=}\NormalTok{ brief.replace(}\StringTok{"}\SpecialCharTok{\{Stellenbezeichnung\}}\StringTok{"}\NormalTok{, Stellenbezeichnung)}
+
+    \CommentTok{\# Erzeugen der PDF}
+\NormalTok{    pdf }\OperatorTok{=}\NormalTok{ FPDF()}
+\NormalTok{    pdf.add\_page()}
+\NormalTok{    pdf.set\_font(}\StringTok{"Arial"}\NormalTok{, size}\OperatorTok{=}\DecValTok{12}\NormalTok{)}
+\NormalTok{    pdf.multi\_cell(}\DecValTok{0}\NormalTok{, }\DecValTok{5}\NormalTok{, txt}\OperatorTok{=}\NormalTok{brief, align}\OperatorTok{=}\StringTok{"L"}\NormalTok{)}
+\NormalTok{    fileoutput }\OperatorTok{=} \StringTok{"./output/Bewerbung {-} Jörg Zeilinger {-} "} \OperatorTok{+}\NormalTok{ replace\_special\_characters(Stellenbezeichnung }\OperatorTok{+} \StringTok{" {-} "} \OperatorTok{+}\NormalTok{ Firmenname) }\OperatorTok{+} \StringTok{".pdf"}
+\NormalTok{    pdf.output(fileoutput)}
+\NormalTok{    pdf.close()}
+
+    \CommentTok{\# Hinzufügen der Anhänge}
+\NormalTok{    merger }\OperatorTok{=}\NormalTok{ PdfMerger()}
+\NormalTok{    merger.append(fileoutput)}
+\NormalTok{    merger.append(}\StringTok{"./data/Lebenslauf.pdf"}\NormalTok{)}
+\NormalTok{    merger.append(}\StringTok{"./data/Zeugnisse.pdf"}\NormalTok{)}
+\NormalTok{    merger.write(fileoutput)}
+\NormalTok{    merger.close()}
+
+    \CommentTok{\# Optional: Versenden der E{-}Mail}
+    \ControlFlowTok{if}\NormalTok{ Email }\OperatorTok{==} \VariableTok{True}\NormalTok{:}
+\NormalTok{        sender\_email }\OperatorTok{=} \StringTok{"joerg.zeilinger@gmail.com"}
+\NormalTok{        receiver\_email }\OperatorTok{=}\NormalTok{ Emailadresse}
+\NormalTok{        password }\OperatorTok{=} \StringTok{"xxx"}
+        
+\NormalTok{        message }\OperatorTok{=}\NormalTok{ MIMEMultipart(}\StringTok{"alternative"}\NormalTok{)}
+\NormalTok{        message[}\StringTok{"Subject"}\NormalTok{] }\OperatorTok{=} \StringTok{"Bewerbung {-} Jörg Zeilinger {-} "} \OperatorTok{+}\NormalTok{ Stellenbezeichnung}
+\NormalTok{        message[}\StringTok{"From"}\NormalTok{] }\OperatorTok{=}\NormalTok{ sender\_email}
+\NormalTok{        message[}\StringTok{"To"}\NormalTok{] }\OperatorTok{=}\NormalTok{ receiver\_email}
+        
+\NormalTok{        text }\OperatorTok{=}\NormalTok{ brief}
+\NormalTok{        html }\OperatorTok{=}\NormalTok{ brief}
+        
+\NormalTok{        part1 }\OperatorTok{=}\NormalTok{ MIMEText(text, }\StringTok{"plain"}\NormalTok{)}
+\NormalTok{        part2 }\OperatorTok{=}\NormalTok{ MIMEText(html, }\StringTok{"html"}\NormalTok{)}
+        
+\NormalTok{        message.attach(part1)}
+\NormalTok{        message.attach(part2)}
+        
+\NormalTok{        filename }\OperatorTok{=}\NormalTok{ fileoutput}
+        \ControlFlowTok{with} \BuiltInTok{open}\NormalTok{(filename, }\StringTok{"rb"}\NormalTok{) }\ImportTok{as}\NormalTok{ attachment:}
+\NormalTok{            part }\OperatorTok{=}\NormalTok{ MIMEBase(}\StringTok{"application"}\NormalTok{, }\StringTok{"octet{-}stream"}\NormalTok{)}
+\NormalTok{            part.set\_payload(attachment.read())}
+            
+\NormalTok{        encoders.encode\_base64(part)}
+        
+\NormalTok{        part.add\_header(}
+            \StringTok{"Content{-}Disposition"}\NormalTok{,}
+            \SpecialStringTok{f"attachment; filename= }\SpecialCharTok{\{}\NormalTok{filename}\SpecialCharTok{\}}\SpecialStringTok{"}\NormalTok{,}
+\NormalTok{        )}
+        
+\NormalTok{        message.attach(part)}
+\NormalTok{        text }\OperatorTok{=}\NormalTok{ message.as\_string()}
+        
+\NormalTok{        context }\OperatorTok{=}\NormalTok{ ssl.create\_default\_context()}
+        \ControlFlowTok{with}\NormalTok{ smtplib.SMTP\_SSL(}\StringTok{"smtp.gmail.com"}\NormalTok{, }\DecValTok{465}\NormalTok{, context}\OperatorTok{=}\NormalTok{context) }\ImportTok{as}\NormalTok{ server:}
+\NormalTok{            server.login(sender\_email, password)}
+\NormalTok{            server.sendmail(sender\_email, receiver\_email, text)}
+            
+        \BuiltInTok{print}\NormalTok{(}\StringTok{"E{-}Mail wurde versendet"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Offene Fragen}\label{offene-fragen}
+
+\begin{itemize}
+\tightlist
+\item
+  Wie kann die Sicherheit beim Versenden der E-Mails verbessert werden?
+\item
+  Wie kann die Qualität der generierten PDFs verbessert werden?
+\item
+  Wie kann der Prozess weiter automatisiert werden?
+\end{itemize}

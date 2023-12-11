@@ -1,0 +1,21 @@
+{Firmenname}
+{Ansprechpartner}
+{Straße}
+{PLZ} {Ort}
+
+
+
+Betreff: Bewerbung als "{Stellenbezeichnung}" in Ihrem Unternehmen
+
+{Anrede},
+
+hiermit bewerbe ich mich auf die Stelle "{Stellenbezeichnung}" in Ihrem Unternehmen.
+
+Bla Bla Bla
+
+Mit freundlichen Grüßen
+
+<Unterschrift>
+
+{YOUR_NAME}
+Dieser Brief ist auch ohne Unterschrift gültig.
